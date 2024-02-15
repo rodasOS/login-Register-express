@@ -12,9 +12,8 @@ async function login(req, res) {
 	//	--> Conexion a la base de datos
 	const connection = await conec.getConnection();
 	const users = await connection.query('SELECT * FROM register_users.users;');
-	
-	const usuarioARevisar = users.find((usuario) => usuario.user_name === user);
 
+	const usuarioARevisar = users.find((usuario) => usuario.user_name === user);
 
 	//	-->	Autenticacion
 	if (!user || !password) {
@@ -35,11 +34,18 @@ async function login(req, res) {
 		return console.log('Los datos del usuario son incorrectos');
 	}
 
-	// const token = jsonwebtoken.sign({ user: usuarioARevisar }, process.env.JWT_SECRET, {
-	// 	expiresIn: process.env.JWT_EXPIRATION,
-	// });
+	const token = jsonwebtoken.sign({ user: usuarioARevisar.user }, process.env.JWT_SECRET, {
+		expiresIn: process.env.JWT_EXPIRATION,
+	});
+
+	const cookieOption = {
+		//Este atributo debe recibir una fecha
+		expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES * 24 * 60 * 60 * 1000),
+		path: '/',
+	};
 
 	//	-->	Respuesta 'ok' al cliente
+	res.cookie('jwt', token, cookieOption);
 	res.status(200).send({ status: 'ok', message: 'Sesion iniciada correctamente', redirect: '/admin' });
 	return console.log('sesion iniciada correctamente');
 }
@@ -75,7 +81,6 @@ async function register(req, res) {
 		password: hashPassword,
 	};
 
-
 	const result = await connection.query(
 		'INSERT INTO `register_users`.`users` (`user_name`, `email`, `password`) VALUES (?, ?, ?);',
 		[user, email, hashPassword],
@@ -83,7 +88,6 @@ async function register(req, res) {
 
 	console.log(nuevoUsuario);
 	console.log('Registrado correctamente');
-
 
 	//	-->	Respuesta 'ok' al cliente
 	return res.status(201).send({ status: 'ok', message: `Usuario ${nuevoUsuario.user} agregado`, redirect: '/' });
