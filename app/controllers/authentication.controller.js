@@ -9,7 +9,12 @@ async function login(req, res) {
 	//	-->	Recuperando informacion de la peticion
 	const user = req.body.user;
 	const password = req.body.password;
+	//	--> Conexion a la base de datos
+	const connection = await conec.getConnection();
+	const users = await connection.query('SELECT * FROM register_users.users;');
+	
 	const usuarioARevisar = users.find((usuario) => usuario.user_name === user);
+
 
 	//	-->	Autenticacion
 	if (!user || !password) {
@@ -34,10 +39,6 @@ async function login(req, res) {
 	// 	expiresIn: process.env.JWT_EXPIRATION,
 	// });
 
-	//	--> Conexion a la base de datos
-	const connection = await conec.getConnection();
-	const users = await connection.query('SELECT * FROM register_users.users;');
-
 	//	-->	Respuesta 'ok' al cliente
 	res.status(200).send({ status: 'ok', message: 'Sesion iniciada correctamente', redirect: '/admin' });
 	return console.log('sesion iniciada correctamente');
@@ -49,6 +50,11 @@ async function register(req, res) {
 	const user = req.body.user;
 	const email = req.body.email;
 	const password = req.body.password;
+	//	-->	Conexion a la base de datos
+	const connection = await conec.getConnection();
+	//	-->	Solicitan y mostrando en la consola todos los usuarios registrados en la base de datos
+	const users = await connection.query('SELECT * FROM register_users.users;');
+	console.log(users);
 	const usuarioARevisar = users.find((usuario) => usuario.user_name === user);
 
 	if (!user || !email || !password) {
@@ -69,8 +75,6 @@ async function register(req, res) {
 		password: hashPassword,
 	};
 
-	//	-->	Conexion a la base de datos
-	const connection = await conec.getConnection();
 
 	const result = await connection.query(
 		'INSERT INTO `register_users`.`users` (`user_name`, `email`, `password`) VALUES (?, ?, ?);',
@@ -80,9 +84,6 @@ async function register(req, res) {
 	console.log(nuevoUsuario);
 	console.log('Registrado correctamente');
 
-	//	-->	Solicitan y mostrando en la consola todos los usuarios registrados en la base de datos
-	const users = await connection.query('SELECT * FROM register_users.users;');
-	console.log(users);
 
 	//	-->	Respuesta 'ok' al cliente
 	return res.status(201).send({ status: 'ok', message: `Usuario ${nuevoUsuario.user} agregado`, redirect: '/' });

@@ -4,10 +4,12 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { methods } from './controllers/authentication.controller.js';
+import morgan from 'morgan';
 
 //Server
 const app = express();
 app.use(express.json());
+app.use(morgan('dev'))
 const PUERTO = process.env.PORT || 3000;
 app.listen(PUERTO, () => {
 	console.log(`El servidor está escuchando en el puerto ${PUERTO}`);
