@@ -21,7 +21,7 @@ async function login(req, res) {
 	}
 
 	if (!usuarioARevisar) {
-		console.log(users);
+		// console.log(users);
 
 		res.status(400).send({ status: 'Error', message: 'El usuario no existe' });
 		return console.log('El usuario no existe');
@@ -60,11 +60,19 @@ async function register(req, res) {
 	const connection = await conec.getConnection();
 	//	-->	Solicitan y mostrando en la consola todos los usuarios registrados en la base de datos
 	const users = await connection.query('SELECT * FROM register_users.users;');
-	console.log(users);
 	const usuarioARevisar = users.find((usuario) => usuario.user_name === user);
+	//	-->>	Expresion regular para validar email
+	const expReg =
+		/^[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+	const esValido = expReg.test(email);
 
 	if (!user || !email || !password) {
+		console.log(esValido);
 		return res.status(400).send({ status: 'Error', message: 'Los campos están incompletos!!!' });
+	} 
+	
+	if (!esValido) {
+		return res.status(400).send({ status: 'Error', message: 'El correo no es válido!!!' });
 	}
 
 	if (usuarioARevisar) {
@@ -72,7 +80,7 @@ async function register(req, res) {
 		return console.log('El usuario ya existe');
 	}
 
-	const salt = await bcryptjs.genSalt(5);
+	const salt = await bcryptjs.genSalt(10);
 	const hashPassword = await bcryptjs.hash(password, salt);
 
 	const nuevoUsuario = {
